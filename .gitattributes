@@ -1,1 +1,2 @@
-src/* linguist-documentation
+data/* linguist-vendored
+data/.pwn linguist-vendored=false
