@@ -1,2 +1,2 @@
-data/* linguist-vendored
-data/.pwn linguist-vendored=false
+* linguist-vendored
+*.cpp linguist-vendored=false
