@@ -1,6 +1,6 @@
 # Geometry Processing - Poisson Surface Reconstruction
 
-This is my implementation of Poisson Surface Reconstruction in [CSC419/CSC2520 Geometry Processing](https://github.com/alecjacobson/geometry-processing-csc2520/).
+This is my implementation of Poisson Surface Reconstruction assignment in [CSC419/CSC2520 Geometry Processing](https://github.com/alecjacobson/geometry-processing-csc2520/).
 
 ## Build & Execution
 ```
