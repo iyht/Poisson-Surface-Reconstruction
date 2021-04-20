@@ -2,6 +2,12 @@
 #include <igl/copyleft/marching_cubes.h>
 #include <algorithm>
 
+#include <Eigen/Sparse>
+#include "fd_interpolate.h"
+#include "fd_grad.h"
+
+
+
 void poisson_surface_reconstruction(
     const Eigen::MatrixXd & P,
     const Eigen::MatrixXd & N,
@@ -47,6 +53,38 @@ void poisson_surface_reconstruction(
   ////////////////////////////////////////////////////////////////////////////
   // Add your code here
   ////////////////////////////////////////////////////////////////////////////
+    // 1. distribute the given normals N
+    Eigen::SparseMatrix<double> Wx, Wy, Wz;
+    fd_interpolate(nx - 1, ny, nz, h, corner, P, Wx);
+    fd_interpolate(nx, ny - 1, nz, h, corner, P, Wy);
+    fd_interpolate(nx, ny, nz - 1, h, corner, P, Wz);
+    Eigen::VectorXd vx, vy, vz, v;
+    vx = Wx.transpose()*N.col(0);
+    vy = Wy.transpose()*N.col(1);
+    vz = Wz.transpose()*N.col(2);
+    v.resize(vx.rows()+vy.rows()+vz.rows());
+    v << vx, vy, vz;
+
+    // 2. construct the linear system G^TGg = G^Tv
+    Eigen::SparseMatrix<double> G, GTG;
+    fd_grad(nx, ny, nz, h, G);
+    GTG = G.transpose()*G;
+    Eigen::VectorXd GTv = G.transpose()*v;
+
+    Eigen::BiCGSTAB<Eigen::SparseMatrix<double> > solver;
+    solver.compute(GTG);
+    g = solver.solve(GTv);
+
+    //Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> cg;
+    //cg.compute(GTG);
+    //g = cg.solve(GTv);
+
+    // 3. Determin the iso-level
+    Eigen::SparseMatrix<double> W;
+    fd_interpolate(nx,ny,nz, h, corner, P, W);
+    double sigma = (Eigen::VectorXd::Ones(n)/(double)n).transpose()*(W*g);
+    g = g.array() - sigma;
+
 
   ////////////////////////////////////////////////////////////////////////////
   // Run black box algorithm to compute mesh from implicit function: this
